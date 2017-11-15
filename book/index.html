@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>vue+bootstrap购物车功能</title>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+		<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+	</head>
+	<style type="text/css">
+	</style>
+
+	<body>
+		<div id="app">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-6 col-md-6 col-xs-6 col-lg-offset-3 col-md-offset-3 col-xs-offset-3" style="text-align: center;">
+						<h2>Vue+Bootstrap&nbsp;&nbsp;购物车项目</h2></div>
+				</div>
+				<h3 style="text-align: center;margin-bottom: 15px;">单击选择要购买的商品</h3>
+				<div class="row" style="margin-top: 20px;display: flex;justify-content: space-around;">
+					<img :src="itemImg.img" :alt="itemImg.name" class="img-thumbnail col-lg-2" v-for="itemImg in noticeList" style="height: 250px;" v-on:click="selectnotice(itemImg,1)">
+				</div>
+				<div class="row" style="margin-top: 50px;">
+					<div class="col-lg-12 col-md-12 col-xs-12">
+						<table class="table table-striped table-hover">
+							<thead>
+								<tr>
+									<td class="text-center col-lg-1 col-md-1 col-xs-1">序号</td>
+									<td class="text-center col-lg-4 col-md-4 col-xs-4">商品详情</td>
+									<td class="text-center col-lg-1 col-md-1 col-xs-1">商品单价</td>
+									<td class="text-center col-lg-3 col-md-3 col-xs-3">商品数量</td>
+									<td class="text-center col-lg-1 col-md-1 col-xs-1">总金额</td>
+									<td class="text-center col-lg-2 col-md-2 col-xs-2">删除</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="(item,index) in noticeList" v-if="item.checked">
+									<td style="text-align: center;padding-top: 25px;">{{index+1}}</td>
+									<td>
+										<div class="col-lg-4 col-md-12 col-xs-12">
+											<img v-bind:src="item.img" :alt="item.name" class="img-thumbnail col-lg-12" style="margin: 15px auto;" />
+										</div>
+										<div class="col-lg-6 col-md-12 col-xs-12">
+											<p style="margin-top: 15px;">书名：{{item.name}}</p>
+											<p style="">作者：{{item.author}}</p>
+											<p>出版社：{{item.company}}</p>
+											<p>页数：{{item.page}}</p>
+										</div>
+									</td>
+									<td style="text-align: center;padding-top: 25px;">
+										{{item.price|formatMoney}}
+									</td>
+									<td style="display: flex;flex-flow: row;padding-top: 25px;">
+										<button v-on:click="changeMoney(item,-1)" class="col-lg-2 col-lg-offset-3"><strong>-</strong></button>
+										<input type="text" class="col-lg-3 col-md-3 col-xs-2" disabled="disabled" value="0" v-model="item.number" />
+										<button v-on:click="changeMoney(item,1)" class="col-lg-2"><strong>+</strong></button>
+									</td>
+									<td class="zong_price" style="text-align: center;padding-top: 25px;">
+										{{item.zongprice=item.price*item.number|formatMoney}}
+									</td>
+									<td style="text-align: center;padding-top: 25px;">
+										<a id="modal-418866" href="#modal-container-418866" role="button" class="btn btn-danger" data-toggle="modal" v-on:click="delconfirm(item)">删除</a>
+									</td>
+
+								</tr>
+							</tbody>
+
+						</table>
+						<!--结账模块-->
+						<div class="row clearfix settle">
+							<div class="col-sm-8  column">
+								<a href="#" role="button" class="btn btnchoose" @click="selectall(1)">全选</a>
+								<a href="#" role="button" class="btn btnchoose" @click="selectall(-1)">取消全选</a>
+							</div>
+							<div class="col-sm-4 column text-center">
+								<span class="accounts">结账：</span>
+								<button type="button" class="btn btn-danger btn-lg btnaccounts">
+                        {{total_price|formatMoney}}
+                    </button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--删除弹出 拟态窗-->
+				<div class="row clearfix">
+					<div class="col-md-12 column">
+						<div class="modal fade" id="modal-container-418866" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+							<div class="modal-dialog">
+								<div class="modal-content">
+									<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+										<h4 class="modal-title" id="myModalLabel">
+                                		您要删除商品吗？
+                            </h4>
+									</div>
+									<div class="modal-body text-center">
+										您要删除商品吗？
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                            </button>
+										<button type="button" class="btn btn-danger" data-dismiss="modal" v-on:click="selectnotice(delitem,-1)">删除
+                            </button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			new Vue({
+				el: "#app",
+				data: {
+					total_price: 0,
+					noticeList: [{
+						"checked": false,
+						"img": "https://img3.doubanio.com/lpic/s29529746.jpg",
+						"name": "南方高速 ",
+						"author": "[阿根廷] 胡利奥·科塔萨尔   ",
+						"company": "南海出版公司",
+						"page": "441",
+						"price": 68,
+						"zongprice": 0,
+						"number": 0
+
+					}, {
+						"checked": false,
+						"img": "https://img3.doubanio.com/lpic/s29562250.jpg",
+						"name": "秘密",
+						"author": " [日] 东野圭吾  ",
+						"company": "南海出版公司",
+						"page": "336",
+						"price": 45,
+						"zongprice": 0,
+						"number": 0
+					}, {
+						"checked": false,
+						"img": "https://img3.doubanio.com/lpic/s29540995.jpg",
+						"name": "巫术师",
+						"author": "[英] 约翰·福尔斯  ",
+						"company": "百花文艺出版社",
+						"page": "722",
+						"price": 69.9999,
+						"zongprice": 0,
+						"number": 0
+
+					}],
+					delitem: ''
+				},
+				filters: {
+					formatMoney: function(value) {
+						return "￥" + value.toFixed(2);
+					}
+				},
+
+				methods: {
+					//商品选择
+					selectnotice: function(item, way) {
+						if(way > 0) {
+							item.checked = true;
+						} else {
+							item.checked = false;
+						}
+						this.totalPrice;
+
+					},
+					//商品数量加减函数
+					changeMoney: function(notice, way) {
+						if(way > 0) {
+							notice.number++;
+							if(notice.number > 99) {
+								notice.number = 99;
+							}
+						} else {
+							notice.number--;
+							if(notice.number < 0) {
+								notice.number = 0;
+							}
+						}
+						this.totalPrice;
+						console.log(this.totalPrice)
+					},
+					//删除商品
+					delconfirm: function(item) {
+						this.delitem = item;
+					},
+					selectall: function(way) {
+						this.noticeList.forEach(item => {
+							//es6 的箭头函数IE浏览器可能不支持，把 item => 改成 function(item)。
+							if(way > 0) {
+								item.checked = true;
+							} else {
+								item.checked = false;
+							}
+						})
+						this.totalPrice;
+					},
+				},
+				computed: {
+					//结账 总金额的实时计算
+					totalPrice: function() {
+						// var _this=this;//es6 的箭头函数IE浏览器可能不支持，把 item => 改成 function(item) 就好。 判断语句this 改 _this。
+						this.total_price = 0;
+						this.noticeList.forEach(item => {
+							if(item.checked == true) {
+								this.total_price += item.price * item.number;
+							}
+						})
+					}
+				}
+			})
+		</script>
+	</body>
+
+</html>
